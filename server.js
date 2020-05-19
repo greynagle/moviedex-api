@@ -3,6 +3,7 @@ const express = require("express");
 const morgan = require("morgan");
 const cors = require("cors");
 const helmet = require("helmet");
+
 const MOVIES = require("./movies.json");
 
 const app = express();
@@ -54,15 +55,21 @@ function handleGetMovies(req, res) {
 
 app.get("/movies", handleGetMovies);
 
+// function handleFavicon(req, res) {
+// 	res.get('./ico/favicon.ico');
+// }
+
+// app.get("/favicon.ico", handleFavicon);
+
 app.use((error, req, res, next) => {
-	let response
-	if(process.env.NODE_ENV === 'production') {
-		response = {error: {message: 'server error'}}
-	} else {
-		response = {error}
-	}
-	res.status(500).json(response)
-})
+    let response;
+    if (process.env.NODE_ENV === "production") {
+        response = { error: { message: "server error" } };
+    } else {
+        response = { error };
+    }
+    res.status(500).json(response);
+});
 
 const PORT = process.env.PORT || 8000;
 

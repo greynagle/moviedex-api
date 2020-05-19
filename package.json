@@ -8,7 +8,7 @@
         "dev": "nodemon server.js"
     },
     "keywords": [],
-	"enginers": {
+	"engines": {
 		"node": "12.16.1"
 	},
     "author": "",
