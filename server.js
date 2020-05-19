@@ -1,15 +1,16 @@
 require("dotenv").config();
 const express = require("express");
 const morgan = require("morgan");
-const cors = require('cors')
-const helmet = require('helmet')
+const cors = require("cors");
+const helmet = require("helmet");
 const MOVIES = require("./movies.json");
 
 const app = express();
 
-app.use(morgan("dev"));
-app.use(helmet())
-app.use(cors())
+const morganSetting = process.env.NODE_ENV === "production" ? "tiny" : "common";
+app.use(morgan(morganSetting));
+app.use(helmet());
+app.use(cors());
 
 app.use(function validateBearerToken(req, res, next) {
     const apiToken = process.env.API_TOKEN;
@@ -24,38 +25,45 @@ app.use(function validateBearerToken(req, res, next) {
 
 function handleGetMovies(req, res) {
     const { genre = "", country = "", avg_vote = "" } = req.query;
-	let moviesFiltered = MOVIES
+    let moviesFiltered = MOVIES;
 
-	if(genre){
-		const regGenre = new RegExp(genre, 'i')
-		moviesFiltered = moviesFiltered.filter((val) => {
-			return regGenre.test(val.genre)
+    if (genre) {
+        const regGenre = new RegExp(genre, "i");
+        moviesFiltered = moviesFiltered.filter((val) => {
+            return regGenre.test(val.genre);
+        });
+    }
 
-		})
-	}
-    
-	if(country){
-		const regCountry = new RegExp(country, 'i')
-		moviesFiltered=moviesFiltered.filter((val) => {
-			return regCountry.test(val.country)
-		})
-	}
-	
-	if(avg_vote){
-		moviesFiltered=moviesFiltered.filter((val) => {
-			const compAvgVote = Number(avg_vote)
-			
-			return Number(val.avg_vote)>=compAvgVote
-		})
-	}
+    if (country) {
+        const regCountry = new RegExp(country, "i");
+        moviesFiltered = moviesFiltered.filter((val) => {
+            return regCountry.test(val.country);
+        });
+    }
 
-	res.json(moviesFiltered)
+    if (avg_vote) {
+        moviesFiltered = moviesFiltered.filter((val) => {
+            const compAvgVote = Number(avg_vote);
+
+            return Number(val.avg_vote) >= compAvgVote;
+        });
+    }
+
+    res.json(moviesFiltered);
 }
 
 app.get("/movies", handleGetMovies);
 
-const PORT = 8000;
+app.use((error, req, res, next) => {
+	let response
+	if(process.env.NODE_ENV === 'production') {
+		response = {error: {message: 'server error'}}
+	} else {
+		response = {error}
+	}
+	res.status(500).json(response)
+})
 
-app.listen(PORT, () => {
-    console.log(`Server listening at http://localhost:${PORT}`);
-});
+const PORT = process.env.PORT || 8000;
+
+app.listen(PORT);
